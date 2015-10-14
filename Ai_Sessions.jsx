@@ -75,51 +75,51 @@ dialog.saveBtn.onClick = function(){
     // The business logic
     
     if (app.documents.length == 0) {
-	
-		alert(CONST.NO_OPEN_DOCS);
-	}
-	else {
+    
+        alert(CONST.NO_OPEN_DOCS);
+    }
+    else {
 
-		try {
-			var openDocs = [];
-			for (x=0; x<app.documents.length; x++) {
-				openDocs.push(
-					'"' + app.documents[x].path + "/" + app.documents[x].name + '"'
-				);
-			}
-			var logfolder = new Folder(CONST.LOGFOLDER);
-			if (! logfolder.exists) {
-	
-				logfolder.create();
-			}
-		
-			var testFile = new File(CONST.LOGFOLDER + "/" + session_filename);
-		
-			var n = 1;
-			var max = 100;
-			while (testFile.exists && n < max) {
-				session_filename = "ai-" + dateString + "-r" + n + CONST.JSON_EXT;
-				testFile = new File(CONST.LOGFOLDER + "/" + session_filename);
-				n++;
-			}
-		
-			session_logfile  = "ai-log-"  + dateString  + "-r" + n + CONST.TEXT_EXT
-		
-			logger(
-				session_filename,
-				"{files:[\r" + "    " + openDocs.join(",\r    ") + "\r]}"
-			);
-			
-			initSessionsList(dialog);
-			dialog.msgBox.text = CONST.SESSION_SAVED;
-			dialog.saveBtn.enabled = false;
-		}
-		catch(ex) {
-	
-			logger(session_logfile, "ERROR: " + ex.message);
-		}
-		userInteractionLevel = originalInteractionLevel;
-	}
+        try {
+            var openDocs = [];
+            for (x=0; x<app.documents.length; x++) {
+                openDocs.push(
+                    '"' + app.documents[x].path + "/" + app.documents[x].name + '"'
+                );
+            }
+            var logfolder = new Folder(CONST.LOGFOLDER);
+            if (! logfolder.exists) {
+    
+                logfolder.create();
+            }
+        
+            var testFile = new File(CONST.LOGFOLDER + "/" + session_filename);
+        
+            var n = 1;
+            var max = 100;
+            while (testFile.exists && n < max) {
+                session_filename = "ai-" + dateString + "-r" + n + CONST.JSON_EXT;
+                testFile = new File(CONST.LOGFOLDER + "/" + session_filename);
+                n++;
+            }
+        
+            session_logfile  = "ai-log-"  + dateString  + "-r" + n + CONST.TEXT_EXT
+        
+            logger(
+                session_filename,
+                "{files:[\r" + "    " + openDocs.join(",\r    ") + "\r]}"
+            );
+            
+            initSessionsList(dialog);
+            dialog.msgBox.text = CONST.SESSION_SAVED;
+            dialog.saveBtn.enabled = false;
+        }
+        catch(ex) {
+    
+            logger(session_logfile, "ERROR: " + ex.message);
+        }
+        userInteractionLevel = originalInteractionLevel;
+    }
 };
 
 initSessionsList(dialog);
@@ -135,30 +135,30 @@ dialog.show();
  */
 function initSessionsList(dialog) {
     var sessions = new Folder(CONST.SRCFOLDER).getFiles("*.json");
-	if (! sessions.length) {
-	
-		dialog.msgBox.text = "You have no saved sessions";
-	}
-	else {
+    if (! sessions.length) {
+    
+        dialog.msgBox.text = "You have no saved sessions";
+    }
+    else {
 
-		if (dialog.sessions) {
-		    dialog.sessions.removeAll();
-		}
-		
-		dialog.sessions = dialog.add("listbox", [30, 70, 320, 230]);
-		for (i=0; i<sessions.length; i++) {
-			item = dialog.sessions.add("item", (new File(sessions[i])).name);
-		}
-		dialog.sessions.onChange = function() {
+        if (dialog.sessions) {
+            dialog.sessions.removeAll();
+        }
+        
+        dialog.sessions = dialog.add("listbox", [30, 70, 320, 230]);
+        for (i=0; i<sessions.length; i++) {
+            item = dialog.sessions.add("item", (new File(sessions[i])).name);
+        }
+        dialog.sessions.onChange = function() {
 
-			dialog.openBtn.enabled = true;
-		}
-		dialog.sessions.onDoubleClick = function() {
-		
-			dialog.openBtn.enabled = true;
-			doOpenSession(CONST.SRCFOLDER + "/" + dialog.sessions.selection.text);
-		}
-	}
+            dialog.openBtn.enabled = true;
+        }
+        dialog.sessions.onDoubleClick = function() {
+        
+            dialog.openBtn.enabled = true;
+            doOpenSession(CONST.SRCFOLDER + "/" + dialog.sessions.selection.text);
+        }
+    }
 }
 /**
  * Opens a session
@@ -172,49 +172,49 @@ function doOpenSession(filepath) {
     
         dialog.close();
 
-		try {
-			if (read_file.alias) {
-				while (read_file.alias) {
-					read_file = read_file.resolve().openDlg(
-						CONST.CHOOSE_FILE, 
-						txt_filter, 
-						false
-					);
-				}
-			}
-		}
-		catch(ex) {
-			dialog.msgBox.text = ex.message;
-		}
+        try {
+            if (read_file.alias) {
+                while (read_file.alias) {
+                    read_file = read_file.resolve().openDlg(
+                        CONST.CHOOSE_FILE, 
+                        txt_filter, 
+                        false
+                    );
+                }
+            }
+        }
+        catch(ex) {
+            dialog.msgBox.text = ex.message;
+        }
 
-		try {
-	
-			read_file.open('r', undefined, undefined);
-			if (read_file !== '') {
-				var _json = read_file.read();
-				var obj = eval(_json);
-				if (typeof(obj) == "object") {
-			
-					if (obj.length) {
-						for(i=0; i<obj.length; i++) {
-				
-							//alert(obj[i]);
-							doc = app.open(new File(obj[i]));
-						}
-					}
-				}
-				read_file.close();
-			}
-		}
-		catch(ex) {
+        try {
+    
+            read_file.open('r', undefined, undefined);
+            if (read_file !== '') {
+                var _json = read_file.read();
+                var obj = eval(_json);
+                if (typeof(obj) == "object") {
+            
+                    if (obj.length) {
+                        for(i=0; i<obj.length; i++) {
+                
+                            //alert(obj[i]);
+                            doc = app.open(new File(obj[i]));
+                        }
+                    }
+                }
+                read_file.close();
+            }
+        }
+        catch(ex) {
 
-			try { read_file.close(); }catch(ex){};
-			dialog.msgBox.text = ex.message;
-			logger(session_logfile, "ERROR: " + ex.message);
-		}
-	}
+            try { read_file.close(); }catch(ex){};
+            dialog.msgBox.text = ex.message;
+            logger(session_logfile, "ERROR: " + ex.message);
+        }
+    }
 
-	userInteractionLevel = originalInteractionLevel;
+    userInteractionLevel = originalInteractionLevel;
 }
 
 /**
@@ -225,12 +225,12 @@ function doOpenSession(filepath) {
  */
 function logger(filename, txt) {  
 
-	var file = new File(CONST.LOGFOLDER + "/" + filename);  
-	file.open("e", "TEXT", "????");  
-	file.seek(0,2);  
-	$.os.search(/windows/i)  != -1 ? file.lineFeed = 'windows'  : file.lineFeed = 'macintosh';
-	file.writeln(txt);  
-	file.close();  
+    var file = new File(CONST.LOGFOLDER + "/" + filename);  
+    file.open("e", "TEXT", "????");  
+    file.seek(0,2);  
+    $.os.search(/windows/i)  != -1 ? file.lineFeed = 'windows'  : file.lineFeed = 'macintosh';
+    file.writeln(txt);  
+    file.close();  
 }
 
 /**
