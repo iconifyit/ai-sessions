@@ -148,6 +148,7 @@ function initSessionsList(dialog) {
         /**
          * Let's show the newest sessions at the top.
          */
+        sessions.sort(comparator);
         sessions.reverse();
 
         dialog.sessions = dialog.add("listbox", [30, 70, 320, 230]);
@@ -250,4 +251,32 @@ function doDateFormat(date) {
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
+}
+
+/**
+ * Cleans up the filename/artboardname.
+ * @param   {String}    name    The name to filter and reformat.
+ * @returns  {String}            The cleaned up name.
+ */
+function filterName(name) {
+    return decodeURIComponent(name).replace(' ', '-');
+}
+
+/**
+ * Callback for sorting the file list.
+ * @param   {File}  a
+ * @param   {File}  b
+ * @returns {number}
+ */
+function comparator(a, b) {
+    var nameA = filterName(a.name.toUpperCase());
+    var nameB = filterName(b.name.toUpperCase());
+    if (nameA < nameB) {
+        return -1;
+    }
+    if (nameA > nameB) {
+        return 1;
+    }
+    // names must be equal
+    return 0;
 }
