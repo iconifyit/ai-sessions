@@ -1,4 +1,8 @@
 #target illustrator
+
+#include "/Users/scott/github/iconify/jsx-common/JSON.jsxinc";
+#include "/Users/scott/github/iconify/jsx-common/Utils.jsxinc";
+
 /**
  * USAGE:
  *
@@ -31,24 +35,44 @@ userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;
  * Constants
  */
 
+var dateString = Utils.dateFormat((new Date()).getTime());
+
+/**
+ * @type {{
+ *      SRCFOLDER: string,
+ *      LOGFOLDER: string,
+ *      LOGFILE: string,
+ *      NO_OPEN_DOCS: string,
+ *      NO_DOC_SELECTED: string,
+ *      SESSION_SAVED: string,
+ *      ENTER_FILENAME: string,
+ *      JSON_EXT: string,
+ *      TEXT_EXT: string
+ * }}
+ */
 var CONST = {
-    SRCFOLDER:      "~/Documents/ai-sessions",
-    LOGFOLDER:      "~/Documents/ai-sessions-logs",
-    NO_OPEN_DOCS:   "There are no open docs to save for this session",
-    NO_DOC_SELECTED: "You have not selected a session to open",
-    SESSION_SAVED:  "Your Session Was Saved!",
-    ENTER_FILENAME: "Enter a session file name or click enter to use the default name",
-    JSON_EXT:       ".json",
-    TEXT_EXT:       ".txt"
+    SRCFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions",
+    LOGFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs",
+    LOGFILE          : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs/ai-log-"  + dateString  + "-r1.log",
+    NO_OPEN_DOCS     : "There are no open docs to save for this session",
+    NO_DOC_SELECTED  : "You have not selected a session to open",
+    SESSION_SAVED    : "Your Session Was Saved!",
+    ENTER_FILENAME   : "Enter a session file name or click enter to use the default name",
+    JSON_EXT         : ".json",
+    TEXT_EXT         : ".txt"
 };
 
-var dateString = doDateFormat((new Date()).getTime());
-
 var session_filename = "ai-" + dateString + "-r1" + CONST.JSON_EXT;
-var session_logfile  = "ai-log-"  + dateString  + "-r1" +  CONST.TEXT_EXT;
 
+var logger = new Logger("ai-sessions", CONST.LOGFOLDER);
 
-var dialog = new Window("dialog", "Ai Sessions", [150, 150, 500, 500]);
+// Show dialog in center of screen
+
+var dialog = Utils.window(
+    "dialog",
+    "Ai Session",
+    350, 350
+);
 
 // Message area
 
@@ -69,8 +93,6 @@ dialog.openBtn.onClick = function(){
 
 dialog.saveBtn = dialog.add("button", [230,275,320,315], "Save", {name:"save"});
 dialog.saveBtn.onClick = function(){
-
-    var button = dialog.saveBtn;
 
     // The business logic
 
@@ -103,11 +125,12 @@ dialog.saveBtn.onClick = function(){
                 n++;
             }
 
-            session_logfile  = "ai-log-"  + dateString  + "-r" + n + CONST.TEXT_EXT
+            session_logfile  = "ai-log-"  + dateString  + "-r" + n + CONST.TEXT_EXT;
 
-            logger(
+            Utils.write_file(
                 CONST.SRCFOLDER + "/" + session_filename,
-                "{files:[\r" + "    " + openDocs.join(",\r    ") + "\r]}"
+                '{"files":[\r' + '    ' + openDocs.join(',\r    ') + '\r]}',
+                true
             );
 
             initSessionsList(dialog);
@@ -115,8 +138,7 @@ dialog.saveBtn.onClick = function(){
             dialog.saveBtn.enabled = false;
         }
         catch(ex) {
-
-            logger(CONST.LOGFOLDER + "/" + session_logfile, "ERROR: " + ex.message);
+            logger.error(ex.message);
         }
         userInteractionLevel = originalInteractionLevel;
     }
@@ -172,68 +194,54 @@ function initSessionsList(dialog) {
  */
 function doOpenSession(filepath) {
 
-    var read_file = new File(filepath);
+    var read_file = new File(decodeURI(filepath));
 
-    if (read_file) {
+    if (read_file.exists) {
 
         dialog.close();
 
-        try {
-            if (read_file.alias) {
-                while (read_file.alias) {
-                    read_file = read_file.resolve().openDlg(
-                        CONST.CHOOSE_FILE,
-                        txt_filter,
-                        false
-                    );
-                }
-            }
-        }
-        catch(ex) {
-            dialog.msgBox.text = ex.message;
-        }
+        // try {
+        //     if (read_file.alias) {
+        //         while (read_file.alias) {
+        //             read_file = read_file.resolve().openDlg(
+        //                 CONST.CHOOSE_FILE,
+        //                 txt_filter,
+        //                 false
+        //             );
+        //         }
+        //     }
+        // }
+        // catch(ex) {
+        //     dialog.msgBox.text = ex.message;
+        // }
 
         try {
-            read_file.open('r', undefined, undefined);
-            if (read_file !== '') {
-                var obj = eval(read_file.read());
-                if (typeof(obj) == "object") {
-                    if (obj.length) {
-                        for(i=0; i<obj.length; i++) {
-                            var the_file = new File(obj[i]);
-                            if (the_file.exists) {
-                                doc = app.open(the_file);
-                            }
+            var session = Utils.read_json_file(read_file);
+
+            if (typeof(session) == "object") {
+
+                if (session.files) {
+                    for(i=0; i<session.files.length; i++) {
+                        var ai_file_path = decodeURIComponent(session.files[i]);
+                        var the_file = new File(ai_file_path);
+                        if (the_file.exists) {
+                            doc = app.open(the_file);
+                            app.executeMenuCommand("fitall");
                         }
                     }
                 }
-                read_file.close();
             }
         }
         catch(ex) {
-            try { read_file.close(); }catch(ex){};
             dialog.msgBox.text = ex.message;
-            logger(session_logfile, "ERROR: " + ex.message);
+            logger.error(ex.message);
         }
+    }
+    else {
+        logger.error("File `" + filepath + "` does not exist.");
     }
 
     userInteractionLevel = originalInteractionLevel;
-}
-
-/**
- * Write text to a file
- * @param string filename   The filename into which to save the file
- * @param string txt         The text to write to the file
- * @return void
- */
-function logger(filepath, txt) {
-
-    var file = new File(filepath);
-    file.open("e", "TEXT", "????");
-    file.seek(0,2);
-    $.os.search(/windows/i)  != -1 ? file.lineFeed = 'windows'  : file.lineFeed = 'macintosh';
-    file.writeln(txt);
-    file.close();
 }
 
 /**
@@ -280,3 +288,5 @@ function comparator(a, b) {
     // names must be equal
     return 0;
 }
+
+
