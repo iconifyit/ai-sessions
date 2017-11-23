@@ -28,14 +28,14 @@
  *   NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
  */
 
-var originalInteractionLevel = userInteractionLevel;
-userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;
+Utils.displayAlertsOff();
 
 /**
  * Constants
  */
 
-var dateString = Utils.dateFormat((new Date()).getTime());
+const DATE_STRING      = Utils.dateFormat((new Date()).getTime());
+const SESSION_FILENAME = "ai-" + DATE_STRING + "-r1.json";
 
 /**
  * @type {{
@@ -50,27 +50,25 @@ var dateString = Utils.dateFormat((new Date()).getTime());
  *      TEXT_EXT: string
  * }}
  */
-var CONST = {
+var CONFIG = {
     SRCFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions",
     LOGFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs",
-    LOGFILE          : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs/ai-log-"  + dateString  + "-r1.log",
-    NO_OPEN_DOCS     : "There are no open docs to save for this session",
-    NO_DOC_SELECTED  : "You have not selected a session to open",
-    SESSION_SAVED    : "Your Session Was Saved!",
-    ENTER_FILENAME   : "Enter a session file name or click enter to use the default name",
+    LOGFILE          : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs/ai-log-"  + DATE_STRING  + "-r1.log",
+    NO_OPEN_DOCS     : localize({en_US: "There are no open docs to save for this session"}),
+    NO_DOC_SELECTED  : localize({en_US: "You have not selected a session to open"}),
+    SESSION_SAVED    : localize({en_US: "Your Session Was Saved!"}),
+    ENTER_FILENAME   : localize({en_US: "Enter a session file name or click enter to use the default name"}),
     JSON_EXT         : ".json",
     TEXT_EXT         : ".txt"
 };
 
-var session_filename = "ai-" + dateString + "-r1" + CONST.JSON_EXT;
-
-var logger = new Logger("ai-sessions", CONST.LOGFOLDER);
+var logger = new Logger("ai-sessions", CONFIG.LOGFOLDER);
 
 // Show dialog in center of screen
 
 var dialog = Utils.window(
     "dialog",
-    "Ai Session",
+    Utils.i18n("Ai Sessions"),
     350, 350
 );
 
@@ -81,24 +79,22 @@ dialog.msgBox = dialog.add("statictext", [30,30,300,60], "");
 // Cancel button
 
 dialog.closeBtn = dialog.add("button", [30,275,120,315], "Close", {name:"close"});
-dialog.closeBtn.onClick = function() { dialog.close() };
+dialog.closeBtn.onClick = function() { dialog.close(); };
 
 dialog.openBtn = dialog.add("button", [130,275,220,315], "Open", {name:"open"});
 dialog.openBtn.enabled = false;
 
-dialog.openBtn.onClick = function(){
-
-    doOpenSession(CONST.SRCFOLDER + "/" + dialog.sessions.selection.text);
+dialog.openBtn.onClick = function() {
+    doOpenSession(CONFIG.SRCFOLDER + "/" + dialog.sessions.selection.text);
 };
 
 dialog.saveBtn = dialog.add("button", [230,275,320,315], "Save", {name:"save"});
-dialog.saveBtn.onClick = function(){
+dialog.saveBtn.onClick = function() {
 
     // The business logic
 
     if (app.documents.length == 0) {
-
-        alert(CONST.NO_OPEN_DOCS);
+        alert(CONFIG.NO_OPEN_DOCS);
     }
     else {
 
@@ -109,57 +105,50 @@ dialog.saveBtn.onClick = function(){
                     '"' + app.documents[x].path + "/" + app.documents[x].name + '"'
                 );
             }
-            var logfolder = new Folder(CONST.LOGFOLDER);
+            var logfolder = new Folder(CONFIG.LOGFOLDER);
             if (! logfolder.exists) {
 
                 logfolder.create();
             }
 
-            var testFile = new File(CONST.SRCFOLDER + "/" + session_filename);
+            var testFile = new File(CONFIG.SRCFOLDER + "/" + SESSION_FILENAME);
 
             var n = 1;
             var max = 100;
             while (testFile.exists && n < max) {
-                session_filename = "ai-" + dateString + "-r" + n + CONST.JSON_EXT;
-                testFile = new File(CONST.SRCFOLDER + "/" + session_filename);
+                SESSION_FILENAME = "ai-" + DATE_STRING + "-r" + n + CONFIG.JSON_EXT;
+                testFile = new File(CONFIG.SRCFOLDER + "/" + SESSION_FILENAME);
                 n++;
             }
 
-            session_logfile  = "ai-log-"  + dateString  + "-r" + n + CONST.TEXT_EXT;
-
             Utils.write_file(
-                CONST.SRCFOLDER + "/" + session_filename,
+                CONFIG.SRCFOLDER + "/" + SESSION_FILENAME,
                 '{"files":[\r' + '    ' + openDocs.join(',\r    ') + '\r]}',
                 true
             );
 
             initSessionsList(dialog);
-            dialog.msgBox.text = CONST.SESSION_SAVED;
+            dialog.msgBox.text = CONFIG.SESSION_SAVED;
             dialog.saveBtn.enabled = false;
         }
         catch(ex) {
             logger.error(ex.message);
         }
-        userInteractionLevel = originalInteractionLevel;
+        Utils.displayAlertsOn();
     }
 };
 
 initSessionsList(dialog);
 
-
 dialog.show();
 
-/**
- *  Functions
- */
 /**
  * Initialize the sessions list
  */
 function initSessionsList(dialog) {
-    var sessions = new Folder(CONST.SRCFOLDER).getFiles("*.json");
+    var sessions = new Folder(CONFIG.SRCFOLDER).getFiles("*.json");
     if (! sessions.length) {
-
-        dialog.msgBox.text = "You have no saved sessions";
+        dialog.msgBox.text = Utils.i18n("You have no saved sessions");
     }
     else {
 
@@ -174,17 +163,17 @@ function initSessionsList(dialog) {
         sessions.reverse();
 
         dialog.sessions = dialog.add("listbox", [30, 70, 320, 230]);
-        for (i=0; i<sessions.length; i++) {
+        for (i=0; i < sessions.length; i++) {
             item = dialog.sessions.add("item", (new File(sessions[i])).name);
         }
-        dialog.sessions.onChange = function() {
 
+        dialog.sessions.onChange = function() {
             dialog.openBtn.enabled = true;
         }
-        dialog.sessions.onDoubleClick = function() {
 
+        dialog.sessions.onDoubleClick = function() {
             dialog.openBtn.enabled = true;
-            doOpenSession(CONST.SRCFOLDER + "/" + dialog.sessions.selection.text);
+            doOpenSession(CONFIG.SRCFOLDER + "/" + dialog.sessions.selection.text);
         }
     }
 }
@@ -200,25 +189,25 @@ function doOpenSession(filepath) {
 
         dialog.close();
 
-        // try {
-        //     if (read_file.alias) {
-        //         while (read_file.alias) {
-        //             read_file = read_file.resolve().openDlg(
-        //                 CONST.CHOOSE_FILE,
-        //                 txt_filter,
-        //                 false
-        //             );
-        //         }
-        //     }
-        // }
-        // catch(ex) {
-        //     dialog.msgBox.text = ex.message;
-        // }
+        try {
+            if (read_file.alias) {
+                while (read_file.alias) {
+                    read_file = read_file.resolve().openDlg(
+                        CONFIG.CHOOSE_FILE,
+                        txt_filter,
+                        false
+                    );
+                }
+            }
+        }
+        catch(ex) {
+            dialog.msgBox.text = ex.message;
+        }
 
         try {
             var session = Utils.read_json_file(read_file);
 
-            if (typeof(session) == "object") {
+            if (typeof(session) == 'object') {
 
                 if (session.files) {
                     for(i=0; i<session.files.length; i++) {
@@ -226,7 +215,7 @@ function doOpenSession(filepath) {
                         var the_file = new File(ai_file_path);
                         if (the_file.exists) {
                             doc = app.open(the_file);
-                            app.executeMenuCommand("fitall");
+                            app.executeMenuCommand('fitall');
                         }
                     }
                 }
@@ -238,27 +227,12 @@ function doOpenSession(filepath) {
         }
     }
     else {
-        logger.error("File `" + filepath + "` does not exist.");
+        logger.error(
+            localize({en_US: "%1 - %2 - File `%3` does not exist."}, $.line, $.fileName, filepath)
+        );
     }
 
-    userInteractionLevel = originalInteractionLevel;
-}
-
-/**
- * Format the date in YYYY-MM-DD format
- * @param string date  The date in timestring format
- * @return date string in YYYY-MM-DD format (2015-10-06)
- */
-function doDateFormat(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
-
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-
-    return [year, month, day].join('-');
+    Utils.displayAlertsOn();
 }
 
 /**
