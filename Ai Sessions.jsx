@@ -1,9 +1,3 @@
-#target illustrator
-
-#include "/Users/scott/github/iconify/jsx-common/JSON.jsxinc";
-#include "/Users/scott/github/iconify/jsx-common/Utils.jsxinc";
-#include "/Users/scott/github/iconify/jsx-common/Logger.jsx";
-
 /**
  * USAGE:
  *
@@ -29,13 +23,28 @@
  *   NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
  */
 
+/**
+ * Declare the target app.
+ */
+#target illustrator
+
+/**
+ * Include the libraries we need.
+ */
+#include "/Users/scott/github/iconify/jsx-common/JSON.jsxinc";
+#include "/Users/scott/github/iconify/jsx-common/Utils.jsxinc";
+#include "/Users/scott/github/iconify/jsx-common/Logger.jsx";
+
+/**
+ * Disable Illustrator's alerts.
+ */
 Utils.displayAlertsOff();
 
 /**
- * Constants
+ * Set some global variables.
  */
-const DATE_STRING      = Utils.dateFormat((new Date()).getTime());
-const SESSION_FILENAME = "ai-" + DATE_STRING + "-r1.json";
+var DATE_STRING      = Utils.dateFormat(new Date().getTime());
+var SESSION_FILENAME = "ai-" + DATE_STRING + "-r1.json";
 
 /**
  * @type {{
@@ -68,6 +77,12 @@ var CONFIG = {
 var AiSessions = (function(CONFIG) {
 
     /**
+     * The module dialog.
+     * @type {Window}
+     */
+    var dialog = null;
+
+    /**
      * The local scope logger object.
      * @type {Logger}
      */
@@ -81,7 +96,7 @@ var AiSessions = (function(CONFIG) {
     var Dialog = function() {
         // Show dialog in center of screen
 
-        var dialog = Utils.window(
+        dialog = Utils.window(
             "dialog",
             Utils.i18n("Ai Sessions"),
             350, 350
@@ -100,12 +115,21 @@ var AiSessions = (function(CONFIG) {
         dialog.openBtn.enabled = false;
 
         dialog.openBtn.onClick = function() {
-            openButtonCallback(dialog.sessions.selection.text);
+            doOpenCallback(dialog.sessions.selection.text);
         };
 
         dialog.saveBtn = dialog.add("button", [230,275,320,315], "Save", {name:"save"});
-        dialog.saveBtn.onClick = saveButtonCallback;
+        dialog.saveBtn.onClick = doSaveCallback;
 
+        initSessionsList();
+
+        return dialog;
+    };
+
+    /**
+     * Populates the sessions select list.
+     */
+    var initSessionsList = function() {
         var sessions = new Folder(CONFIG.SRCFOLDER).getFiles("*.json");
 
         if (! sessions.length) {
@@ -134,18 +158,16 @@ var AiSessions = (function(CONFIG) {
 
             dialog.sessions.onDoubleClick = function() {
                 dialog.openBtn.enabled = true;
-                openButtonCallback(dialog.sessions.selection.text);
+                doOpenCallback(dialog.sessions.selection.text);
             }
         }
-
-        return dialog;
     };
 
     /**
      * Callback to open the selected session.
      * @param filepath
      */
-    var openButtonCallback = function(filepath) {
+    var doOpenCallback = function(filepath) {
 
         filepath = CONFIG.SRCFOLDER + "/" + filepath;
 
@@ -171,16 +193,16 @@ var AiSessions = (function(CONFIG) {
             }
 
             try {
-                var session = Utils.read_json_file(read_file);
+                var session = Utils.read_json_file(theFile);
 
                 if (typeof(session) == 'object') {
 
                     if (session.files) {
                         for(i=0; i<session.files.length; i++) {
                             var ai_file_path = decodeURIComponent(session.files[i]);
-                            var the_file = new File(ai_file_path);
-                            if (the_file.exists) {
-                                doc = app.open(the_file);
+                            var thisFile = new File(ai_file_path);
+                            if (thisFile.exists) {
+                                doc = app.open(thisFile);
                                 app.executeMenuCommand('fitall');
                             }
                         }
@@ -204,7 +226,7 @@ var AiSessions = (function(CONFIG) {
     /**
      * Saves the current session.
      */
-    var saveButtonCallback = function() {
+    var doSaveCallback = function() {
         if (app.documents.length == 0) {
             alert(CONFIG.NO_OPEN_DOCS);
         }
