@@ -31,9 +31,16 @@
 /**
  * Include the libraries we need.
  */
-#include "/Users/scott/github/iconify/jsx-common/JSON.jsxinc";
-#include "/Users/scott/github/iconify/jsx-common/Utils.jsxinc";
-#include "/Users/scott/github/iconify/jsx-common/Logger.jsx";
+#includepath "/Users/scott/github/iconify/jsx-common/";
+
+#include "JSON.jsxinc";
+#include "Utils.jsxinc";
+#include "Logger.jsx";
+
+/**
+ * Name that script.
+ */
+#script "Ai Sessions";
 
 /**
  * Disable Illustrator's alerts.
@@ -60,6 +67,7 @@ var SESSION_FILENAME = "ai-" + DATE_STRING + "-r1.json";
  * }}
  */
 var CONFIG = {
+    APP_NAME         : "ai-sessions",
     SRCFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions",
     LOGFOLDER        : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs",
     LOGFILE          : "/Users/scott/Dropbox/Dropbox (Personal)/ai-sessions/logs/ai-log-"  + DATE_STRING  + "-r1.log",
@@ -86,7 +94,7 @@ var AiSessions = (function(CONFIG) {
      * The local scope logger object.
      * @type {Logger}
      */
-    var logger = new Logger($.fileName, CONFIG.LOGFOLDER);
+    var logger = new Logger(CONFIG.APP_NAME, CONFIG.LOGFOLDER);
 
     /**
      * The Dialog for this module.
@@ -239,11 +247,6 @@ var AiSessions = (function(CONFIG) {
                         '"' + app.documents[x].path + "/" + app.documents[x].name + '"'
                     );
                 }
-                var logfolder = new Folder(CONFIG.LOGFOLDER);
-                if (! logfolder.exists) {
-
-                    logfolder.create();
-                }
 
                 var testFile = new File(CONFIG.SRCFOLDER + "/" + SESSION_FILENAME);
 
@@ -274,37 +277,14 @@ var AiSessions = (function(CONFIG) {
     };
 
     /**
-     * Converts a string, array, or object to dash-separated string.
-     * @param   {string|array|object}   subject    A string, array, or object to convert to a slug.
-     * @returns {string}                           The cleaned up name.
-     */
-    var slugger = function(subject) {
-        if (typeof(subject) == "array") {
-            return subject.join('-');
-        }
-        else if (typeof(subject) == "object") {
-            var bits = [];
-            for (key in subject) {
-                if (typeof(subject[key]) != "string") continue;
-                bits.push(subject[key].toLowerCase());
-            }
-            return bits.join('-');
-        }
-        else if (typeof(subject) == "string") {
-            return decodeURIComponent(subject).replace(' ', '-');
-        }
-        return subject;
-    };
-
-    /**
      * Callback for sorting the file list.
      * @param   {File}  a
      * @param   {File}  b
      * @returns {number}
      */
     var comparator = function(a, b) {
-        var nameA = slugger(a.name.toUpperCase());
-        var nameB = slugger(b.name.toUpperCase());
+        var nameA = Utils.slugger(a.name.toUpperCase());
+        var nameB = Utils.slugger(b.name.toUpperCase());
         if (nameA < nameB) {
             return -1;
         }
