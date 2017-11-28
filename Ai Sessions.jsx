@@ -3,8 +3,7 @@
  *
  * 1. Place this script in Applications > Adobe Illustrator > Presets > en_US > Scripts
  * 2. Restart Adobe Illustrator to activate the script
- * 3. The script will be available under menu File > Scripts > BatchResizeArtboards
- * 4. ...
+ * 3. The script will be available under menu File > Scripts > Ai Sessions
  */
 /**
  * LICENSE & COPYRIGHT
@@ -35,7 +34,7 @@
 
 #include "JSON.jsxinc";
 #include "Utils.jsxinc";
-#include "Logger.jsx";
+#include "Logger.jsxinc";
 
 /**
  * Name that script.
