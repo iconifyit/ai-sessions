@@ -1,19 +1,23 @@
 /**
+ * @author Scott Lewis <scott@iconify.it>
+ * @copyright 2017 Scott Lewis
+ * @version 1.0.0
+ * @url http://github.com/iconifyit
+ *
+ * ABOUT:
+ *
+ *    This script demonstrates how to implement a progress bar in your script.
+ *
  * USAGE:
  *
  * 1. Place this script in Applications > Adobe Illustrator > Presets > en_US > Scripts
  * 2. Restart Adobe Illustrator to activate the script
  * 3. The script will be available under menu File > Scripts > Ai Sessions
- */
-/**
- * LICENSE & COPYRIGHT
+ *
+ * NO WARRANTIES:
  *
  *   You are free to use, modify, and distribute this script as you see fit.
  *   No credit is required but would be greatly appreciated.
- *
- *   Scott Lewis - scott@iconify.it
- *   http://github.com/iconifyit
- *   http://iconify.it
  *
  *   THIS SCRIPT IS OFFERED AS-IS WITHOUT ANY WARRANTY OR GUARANTEES OF ANY KIND.
  *   YOU USE THIS SCRIPT COMPLETELY AT YOUR OWN RISK AND UNDER NO CIRCUMSTANCES WILL
@@ -21,7 +25,6 @@
  *   ANY KIND INCLUDING LOSS OF DATA OR DAMAGE TO HARDWARE OR SOFTWARE. IF YOU DO
  *   NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
  */
-
 /**
  * Declare the target app.
  */
